@@ -1,7 +1,8 @@
 package cn.bossfriday.cloudmusic.converter.servcies;
 
-import cn.bossfriday.cloudmusic.converter.entities.CloudMusicFileName;
 import cn.bossfriday.cloudmusic.converter.utils.FileUtils;
+import cn.bossfriday.cloudmusic.converter.utils.MurmurHashUtils;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -9,6 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static cn.bossfriday.cloudmusic.converter.commons.Const.HASH_PREFIX_BEGIN;
+import static cn.bossfriday.cloudmusic.converter.commons.Const.HASH_PREFIX_END;
 
 /**
  * RenameService
@@ -31,32 +35,41 @@ public class RenameService {
      * rename
      * <p>
      * 先把歌曲名提前，然后用Hash打散为一个1-999的前缀
+     * 例如：蔡健雅 - 红色高跟鞋.mp3  -->   123-红色高跟鞋 - 蔡健雅.mp3
      *
      * @param srcDirPath
      * @param destDirPath
      * @throws IOException
      */
-    public static void rename(String srcDirPath, String destDirPath) throws IOException {
-        File destDir = new File(destDirPath);
-        if (!destDir.exists()) {
-            destDir.mkdir();
-        } else {
-            FileUtils.cleanDirectory(destDirPath);
-        }
-
-        File[] files = new File(srcDirPath).listFiles();
-        for (File srcFile : files) {
-            if (srcFile.isDirectory()) {
-                continue;
+    public static void rename(String srcDirPath, String destDirPath) {
+        try {
+            File destDir = new File(destDirPath);
+            if (!destDir.exists()) {
+                destDir.mkdir();
+            } else {
+                FileUtils.cleanDirectory(destDirPath);
             }
 
-            CloudMusicFileName cloudMusicFileName = getCloudMusicFile(srcFile.getName());
-            String destFileName = cloudMusicFileName.getNewFileName();
-            String destFilePath = FileUtils.mergePaths(destDirPath, destFileName);
-            File destFile = new File(destFilePath);
-            Files.copy(srcFile.toPath(), destFile.toPath());
+            File[] files = new File(srcDirPath).listFiles();
+            for (File srcFile : files) {
+                try {
+                    if (srcFile.isDirectory()) {
+                        continue;
+                    }
 
-            log.info("[" + srcFile.getName() + "] -> [" + destFileName + "]");
+                    CloudMusicFileName cloudMusicFileName = getCloudMusicFile(srcFile.getName());
+                    String destFileName = cloudMusicFileName.getNewFileName();
+                    String destFilePath = FileUtils.mergePaths(destDirPath, destFileName);
+                    File destFile = new File(destFilePath);
+                    Files.copy(srcFile.toPath(), destFile.toPath());
+
+                    log.info("[" + srcFile.getName() + "] -> [" + destFileName + "] done.");
+                } catch (Exception ex) {
+                    log.error("RenameService.rename() error! file: " + srcFile.getName(), ex);
+                }
+            }
+        } catch (Exception ex) {
+            log.error("RenameService.rename() error!", ex);
         }
     }
 
@@ -80,5 +93,45 @@ public class RenameService {
         }
 
         return new CloudMusicFileName(actorName, songName, extName);
+    }
+
+    @ToString
+    @Builder
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class CloudMusicFileName {
+
+        private String actorName;
+
+        private String songName;
+
+        private String extName;
+
+        /**
+         * getNewFileName
+         *
+         * @return
+         */
+        public String getNewFileName() {
+            String result = this.songName + " - " + this.actorName + "." + this.extName;
+            int prefix = convertToRange(MurmurHashUtils.hash32(result), HASH_PREFIX_BEGIN, HASH_PREFIX_END);
+
+            return prefix + "-" + result;
+        }
+
+        /**
+         * convertToRange
+         *
+         * @param value
+         * @param min
+         * @param max
+         * @return
+         */
+        private static int convertToRange(int value, int min, int max) {
+            int range = max - min + 1;
+
+            return ((value % range) + range) % range + min;
+        }
     }
 }

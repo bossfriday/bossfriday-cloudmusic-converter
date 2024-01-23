@@ -1,6 +1,7 @@
 package cn.bossfriday.cloudmusic.converter.utils;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,5 +57,24 @@ public class FileUtils {
         Path combinedPath = Paths.get(basePath, fileName);
 
         return combinedPath.toString();
+    }
+
+    /**
+     * getFileExtensionName
+     *
+     * @param fileName
+     * @return
+     */
+    public static String getFileExtension(String fileName) {
+        if (StringUtils.isEmpty(fileName) || fileName.indexOf(".") < 0) {
+            return "";
+        }
+
+        int index = fileName.lastIndexOf(".");
+        if (index < 0) {
+            return "";
+        }
+
+        return fileName.substring(index + 1).toLowerCase();
     }
 }
