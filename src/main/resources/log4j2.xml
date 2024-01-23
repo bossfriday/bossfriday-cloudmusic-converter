@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="INFO" monitorInterval="60">
+
+    <Properties>
+        <Property name="LOG_HOME">./logs</Property>
+        <Property name="immediateFlush">true</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} %M - %msg%xEx%n"/>
+        </Console>
+        <RollingRandomAccessFile name="RollingFile" immediateFlush="${immediateFlush}"
+                                 fileName="${LOG_HOME}/cloudmusic-converter.log"
+                                 filePattern="${LOG_HOME}/cloudmusic-converter/%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %M - %msg%xEx%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingRandomAccessFile>
+    </Appenders>
+
+    <Loggers>
+        <root level="INFO">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFile"/>
+        </root>
+    </Loggers>
+</Configuration>
