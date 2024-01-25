@@ -1,13 +1,16 @@
 package cn.bossfriday.cloudmusic.converter.utils;
 
+import cn.bossfriday.cloudmusic.converter.commons.ServiceRuntimeException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 /**
  * FileUtils
@@ -76,5 +79,30 @@ public class FileUtils {
         }
 
         return fileName.substring(index + 1).toLowerCase();
+    }
+
+    /**
+     * writeFile
+     *
+     * @param data
+     * @param file
+     * @throws IOException
+     */
+    public static void writeFile(byte[] data, File file) throws IOException {
+        if (ArrayUtils.isEmpty(data)) {
+            throw new ServiceRuntimeException("data is empty!");
+        }
+
+        if (Objects.isNull(file)) {
+            throw new ServiceRuntimeException("file is null!");
+        }
+
+        if (file.exists()) {
+            throw new ServiceRuntimeException("file existed already! file: " + file.getAbsolutePath());
+        }
+
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+            fileOutputStream.write(data);
+        }
     }
 }

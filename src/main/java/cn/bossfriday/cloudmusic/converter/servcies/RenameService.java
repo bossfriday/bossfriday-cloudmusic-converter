@@ -41,35 +41,31 @@ public class RenameService {
      * @param destDirPath
      * @throws IOException
      */
-    public static void rename(String srcDirPath, String destDirPath) {
-        try {
-            File destDir = new File(destDirPath);
-            if (!destDir.exists()) {
-                destDir.mkdir();
-            } else {
-                FileUtils.cleanDirectory(destDirPath);
-            }
+    public static void rename(String srcDirPath, String destDirPath) throws IOException {
+        File destDir = new File(destDirPath);
+        if (!destDir.exists()) {
+            destDir.mkdir();
+        } else {
+            FileUtils.cleanDirectory(destDirPath);
+        }
 
-            File[] files = new File(srcDirPath).listFiles();
-            for (File srcFile : files) {
-                try {
-                    if (srcFile.isDirectory()) {
-                        continue;
-                    }
-
-                    CloudMusicFileName cloudMusicFileName = getCloudMusicFile(srcFile.getName());
-                    String destFileName = cloudMusicFileName.getNewFileName();
-                    String destFilePath = FileUtils.mergePaths(destDirPath, destFileName);
-                    File destFile = new File(destFilePath);
-                    Files.copy(srcFile.toPath(), destFile.toPath());
-
-                    log.info("[" + srcFile.getName() + "] -> [" + destFileName + "] done.");
-                } catch (Exception ex) {
-                    log.error("RenameService.rename() error! file: " + srcFile.getName(), ex);
+        File[] files = new File(srcDirPath).listFiles();
+        for (File srcFile : files) {
+            try {
+                if (srcFile.isDirectory()) {
+                    continue;
                 }
+
+                CloudMusicFileName cloudMusicFileName = getCloudMusicFile(srcFile.getName());
+                String destFileName = cloudMusicFileName.getNewFileName();
+                String destFilePath = FileUtils.mergePaths(destDirPath, destFileName);
+                File destFile = new File(destFilePath);
+                Files.copy(srcFile.toPath(), destFile.toPath());
+
+                log.info("[" + srcFile.getName() + "] -> [" + destFileName + "] done.");
+            } catch (Exception ex) {
+                log.error("RenameService.rename() error! file: " + srcFile.getName(), ex);
             }
-        } catch (Exception ex) {
-            log.error("RenameService.rename() error!", ex);
         }
     }
 

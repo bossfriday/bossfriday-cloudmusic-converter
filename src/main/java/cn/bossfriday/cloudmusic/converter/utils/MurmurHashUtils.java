@@ -1,5 +1,7 @@
 package cn.bossfriday.cloudmusic.converter.utils;
 
+import cn.bossfriday.cloudmusic.converter.commons.ServiceRuntimeException;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +25,7 @@ public class MurmurHashUtils {
      */
     public static long hash64(String key) {
         if (org.apache.commons.lang3.StringUtils.isEmpty(key)) {
-            throw new RuntimeException("input key is null or empty!");
+            throw new ServiceRuntimeException("input key is null or empty!");
         }
 
         return hash64(key.getBytes(StandardCharsets.UTF_8));
@@ -47,7 +49,7 @@ public class MurmurHashUtils {
      */
     public static int hash32(String key) {
         if (org.apache.commons.lang3.StringUtils.isEmpty(key)) {
-            throw new RuntimeException("input key is null or empty!");
+            throw new ServiceRuntimeException("input key is null or empty!");
         }
 
         return hash(key.getBytes(StandardCharsets.UTF_8), 0x1234ABCD);

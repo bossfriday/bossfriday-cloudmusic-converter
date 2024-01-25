@@ -21,6 +21,12 @@ public class Bootstrap {
         System.out.println(destDirPath);
     }
 
+    /**
+     * scanner
+     *
+     * @param tip
+     * @return
+     */
     private static String scanner(String tip) {
         Scanner scanner = new Scanner(System.in);
         System.out.println(tip + "：");
