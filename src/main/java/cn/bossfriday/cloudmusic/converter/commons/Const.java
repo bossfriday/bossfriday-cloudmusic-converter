@@ -22,4 +22,5 @@ public class Const {
     public static final int LENGTH_CLOUD_MUSIC_HARD_CODE_JSON_PREFIX = 6;
 
     public static final String VALUE_NCM = "ncm";
+    public static final String VALUE_UNKNOWN = "未知";
 }

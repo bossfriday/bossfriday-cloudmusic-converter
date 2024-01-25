@@ -7,11 +7,14 @@ import cn.bossfriday.cloudmusic.converter.entities.NcmMetaData;
 import cn.bossfriday.cloudmusic.converter.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+
+import static cn.bossfriday.cloudmusic.converter.commons.Const.VALUE_UNKNOWN;
 
 /**
  * ConvertService
@@ -89,9 +92,11 @@ public class ConvertService {
 
         String artName = "";
         for (String[] entry : artist) {
-            artName += entry[0] + " ";
+            if (entry.length >= 1) {
+                artName += entry[0] + " ";
+            }
         }
 
-        return artName;
+        return StringUtils.isEmpty(artName) ? VALUE_UNKNOWN : artName;
     }
 }
