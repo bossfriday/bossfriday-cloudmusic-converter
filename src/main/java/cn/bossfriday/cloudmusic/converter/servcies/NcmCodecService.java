@@ -1,5 +1,6 @@
 package cn.bossfriday.cloudmusic.converter.servcies;
 
+import cn.bossfriday.cloudmusic.converter.cipher.RC4;
 import cn.bossfriday.cloudmusic.converter.commons.ServiceRuntimeException;
 import cn.bossfriday.cloudmusic.converter.entities.CloudMusic;
 import cn.bossfriday.cloudmusic.converter.entities.NcmMetaData;
@@ -7,7 +8,6 @@ import cn.bossfriday.cloudmusic.converter.entities.Rc4Key;
 import cn.bossfriday.cloudmusic.converter.utils.CodecUtils;
 import cn.bossfriday.cloudmusic.converter.utils.FileUtils;
 import cn.bossfriday.cloudmusic.converter.utils.GsonUtils;
-import cn.bossfriday.cloudmusic.converter.utils.RC4;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
@@ -41,51 +41,45 @@ public class NcmCodecService {
     /**
      * decode
      *
-     * @param srcFilePath
+     * @param srcFile
+     * @return
      */
-    public static NcmMetaData decode(String srcFilePath) {
-        try {
-            File srcFile = new File(srcFilePath);
-            if (!srcFile.exists()) {
-                log.warn("srcFile not existed! file: {} ", srcFilePath);
-                return null;
-            }
-
-            String fileExtName = FileUtils.getFileExtension(srcFile.getName());
-            if (!fileExtName.equalsIgnoreCase(VALUE_NCM)) {
-                return null;
-            }
-
-            try (FileInputStream fis = new FileInputStream(srcFilePath)) {
-                byte[] magicHeader = readBytes(fis, LENGTH_MAGIC_HEADER);
-                int rc4KeyLength = getLength(fis);
-                Rc4Key rc4Key = getRc4Key(fis, rc4KeyLength);
-                int musicInfoLength = getLength(fis);
-                CloudMusic cloudMusic = getCloudMusic(fis, musicInfoLength);
-                byte[] crc = readBytes(fis, LENGTH_CRC);
-                byte[] gap = readBytes(fis, LENGTH_GAP);
-                int albumImageSize = getLength(fis);
-                byte[] albumImage = getAlbumImage(fis, albumImageSize);
-                byte[] audioData = getAudioData(fis, rc4Key.getKey());
-
-                return NcmMetaData.builder()
-                        .magicHeader(magicHeader)
-                        .rc4KeyLength(rc4KeyLength)
-                        .rc4Key(rc4Key)
-                        .musicInfoLength(musicInfoLength)
-                        .cloudMusic(cloudMusic)
-                        .crc(crc)
-                        .gap(gap)
-                        .albumImageSize(albumImageSize)
-                        .albumImage(albumImage)
-                        .audioData(audioData)
-                        .build();
-            }
-        } catch (Exception ex) {
-            log.error("NcmCodecService.decode() error!", ex);
+    public static NcmMetaData decode(File srcFile) throws IOException {
+        if (!srcFile.exists()) {
+            log.warn("srcFile not existed! file: {} ", srcFile.getAbsolutePath());
+            return null;
         }
 
-        throw new ServiceRuntimeException("NcmCodecService.decode() failed!");
+        String fileExtName = FileUtils.getFileExtension(srcFile.getName());
+        if (!fileExtName.equalsIgnoreCase(VALUE_NCM)) {
+            return null;
+        }
+
+        try (FileInputStream fis = new FileInputStream(srcFile)) {
+            byte[] magicHeader = readBytes(fis, LENGTH_MAGIC_HEADER);
+            int rc4KeyLength = getLength(fis);
+            Rc4Key rc4Key = getRc4Key(fis, rc4KeyLength);
+            int musicInfoLength = getLength(fis);
+            CloudMusic cloudMusic = getCloudMusic(fis, musicInfoLength);
+            byte[] crc = readBytes(fis, LENGTH_CRC);
+            byte[] gap = readBytes(fis, LENGTH_GAP);
+            int albumImageSize = getLength(fis);
+            byte[] albumImage = getAlbumImage(fis, albumImageSize);
+            byte[] audioData = getAudioData(fis, rc4Key.getKey());
+
+            return NcmMetaData.builder()
+                    .magicHeader(magicHeader)
+                    .rc4KeyLength(rc4KeyLength)
+                    .rc4Key(rc4Key)
+                    .musicInfoLength(musicInfoLength)
+                    .cloudMusic(cloudMusic)
+                    .crc(crc)
+                    .gap(gap)
+                    .albumImageSize(albumImageSize)
+                    .albumImage(albumImage)
+                    .audioData(audioData)
+                    .build();
+        }
     }
 
     /**
@@ -192,7 +186,6 @@ public class NcmCodecService {
         CloudMusic cloudMusic = GsonUtils.fromJson(json, CloudMusic.class);
         cloudMusic.setHardCodeSalt(hardCodesalt);
         cloudMusic.setHardCodeJsonPrefix(hardCodeJsonPrefix);
-
 
         return cloudMusic;
     }
